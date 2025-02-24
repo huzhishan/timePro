@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .chart-container {
+            width: 300px;
+            height: 300px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Yearly Progress</h2>
+        <div class="chart-container">
+            <canvas id="yearlyChart"></canvas>
+        </div>
+        <!-- 添加一个用于显示年度进度百分比的段落 -->
+        <p id="yearlyProgressText" style="font-size: 18px; font-weight: bold; color: #3498db;">0%</p>
+
+        <h2>Daily Progress</h2>
+        <div class="chart-container">
+            <canvas id="dailyChart"></canvas>
+        </div>
+        <!-- 添加一个用于显示每日进度百分比的段落 -->
+        <p id="dailyProgressText" style="font-size: 18px; font-weight: bold; color: #2ecc71;">0%</p>
+
+    </div>
+    <script>
+        // Plugin to draw quarter markers on the yearly chart
+        const quarterMarkersPlugin = {
+            id: 'quarterMarkers',
+            afterDraw: (chart) => {
+                if (chart.canvas.id === 'yearlyChart') {
+                    const ctx = chart.ctx;
+                    const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+                    const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+                    const outerRadius = Math.min(chart.chartArea.width, chart.chartArea.height) / 2;
+                    const innerRadius = outerRadius*0.7;
+                    
+                    [0,0.25, 0.5, 0.75].forEach((fraction) => {
+                        const angle = (fraction * 360 - 90) * (Math.PI / 180);
+                        const x1 = centerX + innerRadius * Math.cos(angle);
+                        const y1 = centerY + innerRadius * Math.sin(angle);
+                        const x2 = centerX + outerRadius * Math.cos(angle);
+                        const y2 = centerY + outerRadius * Math.sin(angle);
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.strokeStyle = 'white';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    });
+                }
+            }
+        };
+
+        // Function to calculate yearly progress
+        function getYearlyProgress() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const start = new Date(year, 0, 1);
+            const end = new Date(year + 1, 0, 1);
+            const progress = (now - start) / (end - start)*100;
+            return progress;
+        }
+
+        // Function to calculate daily progress
+        function getDailyProgress() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+            const progress = (now - start) / (end - start)*100;
+            return progress;
+        }
+
+        // Create the yearly chart with quarter markers
+        const yearlyCtx = document.getElementById('yearlyChart').getContext('2d');
+        const yearlyChart = new Chart(yearlyCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [0, 1],
+                    backgroundColor: ['#3498db', '#ecf0f1']
+                }]
+            },
+            options: {
+                cutout: '70%',
+                rotation: -90,
+                circumference: 360,
+                tooltips: { enabled: false },
+                hover: { mode: null },
+                plugins: {
+                    legend: { display: false },
+                    title: { display: false }
+                }
+            },
+            plugins: [quarterMarkersPlugin]
+        });
+
+        // Create the daily chart
+        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+        const dailyChart = new Chart(dailyCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [0, 1],
+                    backgroundColor: ['#2ecc71', '#ecf0f1']
+                }]
+            },
+            options: {
+                cutout: '70%',
+                rotation: -90,
+                circumference: 360,
+                tooltips: { enabled: false },
+                hover: { mode: null },
+                plugins: {
+                    legend: { display: false },
+                    title: { display: false }
+                }
+            }
+        });
+
+        // Function to update both charts
+        function updateCharts() {
+            const yearlyProgress = getYearlyProgress();
+            const dailyProgress = getDailyProgress();
+            
+            yearlyChart.data.datasets[0].data = [yearlyProgress, 100 - yearlyProgress];
+            dailyChart.data.datasets[0].data = [dailyProgress, 100 - dailyProgress];
+            
+            // 更新 yearly progress 的数值显示
+            document.getElementById('yearlyProgressText').textContent = `${yearlyProgress.toFixed(3)}%`;
+            
+            // 更新 daily progress 的数值显示
+            document.getElementById('dailyProgressText').textContent = `${dailyProgress.toFixed(3)}%`;
+
+
+            yearlyChart.update();
+            dailyChart.update();
+        }
+
+        // Initial update
+        updateCharts();
+
+        // Update every second
+        setInterval(updateCharts, 1000);
+    </script>
+</body>
+</html>
