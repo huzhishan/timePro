@@ -21,6 +21,6 @@ Stripe:
 
 <img src="https://github.com/user-attachments/assets/fa89f83b-8d9d-4635-b690-0833a25987aa" width="150" alt="buyMeACoffee">
 
-支付宝：
+支付宝（全名胡志善）：
 
 <img width="150" alt="Jason" src="https://github.com/user-attachments/assets/1c4f3c54-129f-4cb3-8cf4-993925261fc0" />
